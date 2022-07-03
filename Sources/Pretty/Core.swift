@@ -11,7 +11,7 @@ public protocol El {
 
 
 
-indirect public enum Doc<A: El> {
+indirect public enum Doc<A: El & Equatable>: Equatable {
     case empty
     case seq(Doc, Doc)
     case nest(indent: A.Width, Doc)
