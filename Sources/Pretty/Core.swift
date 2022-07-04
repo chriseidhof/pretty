@@ -11,6 +11,7 @@ public protocol El {
 
 
 
+/// A document that can be laid out (later) with a specific width.
 indirect public enum Doc<A: El & Equatable>: Equatable {
     case empty
     case seq(Doc, Doc)
@@ -19,13 +20,24 @@ indirect public enum Doc<A: El & Equatable>: Equatable {
     case line
     case choice(Doc, Doc)
     
+    ///  Atomic text.
+    ///
+    ///  This should not contain newlines.
+    ///
+    /// - Parameter value: the text
+    /// - Returns: a document containing the text
     static public func text(_ value: A) -> Doc<A> {
         return ._text(value, value.width)
+    }
+    
+    public func nest(indent: A.Width) -> Self {
+        .nest(indent: indent, self)
     }
 }
 
 extension Doc {
-    var flatten: Doc<A> {
+    /// Replace all the newlines in a document with spaces
+    public var flatten: Doc<A> {
         switch self {
         case .empty:
             return .empty
@@ -42,7 +54,8 @@ extension Doc {
         }
     }
     
-    var grouped: Doc {
+    /// Choice between the flattened version of self (if it fits) or the regular version with newlines.
+    public var grouped: Doc {
         return .choice(flatten, self)
     }
 }
@@ -94,6 +107,7 @@ func be<A, S>(width: A.Width, column: A.Width, _ pairs: S) -> SimpleDoc<A> where
     }
 }
 
+// Fixed-width strings (each character counts as a width of 1).
 extension String: El {
     public var width: Int { return count }
     public static let space = " "
@@ -125,11 +139,15 @@ extension SimpleDoc {
 infix operator <>: AdditionPrecedence
 
 extension Doc {
+    /// A space
     public static var space: Doc { return .text(.space) }
+    
+    /// Horizontally concatenate two documents
     public static func <>(lhs: Doc, rhs: Doc) -> Doc {
         return .seq(lhs, rhs)
     }
     
+    /// Render the final document with a horizontal constraint of `width`
     public func renderPretty(width: A.Width) -> A {
         return best(width: width, column: .zero).layout
     }
@@ -148,22 +166,26 @@ extension Collection where Element == Doc<String> {
         return reduce(<%>)
     }
     
+    /// Returns an empty document if `self.isEmpty`, otherwise reduces self.
     func reduce(_ combine: (Doc<String>, Doc<String>) -> Doc<String>) -> Doc<String> {
-        if isEmpty { return .empty }
-        return dropFirst().reduce(first!, combine)
+        guard let f = first else { return .empty }
+        return dropFirst().reduce(f, combine)
     }
     
 }
 
 extension Doc {
+    /// Horizontally concatenate `x` and `y` with a space in between
     public static func <+>(x: Doc, y: Doc) -> Doc {
         return x <> space <> y
     }
     
+    /// Try to horizontally concatenate and otherwise insert a newline
     public static var softline: Doc {
         return Doc.line.grouped
     }
     
+    /// Put `x` and `y` horizontally next to each other, otherwise insert a newline.
     public static func <%>(x: Doc, y: Doc) -> Doc {
         return x <> softline <> y
     }
