@@ -167,7 +167,7 @@ extension Collection where Element == Doc<String> {
     }
     
     /// Returns an empty document if `self.isEmpty`, otherwise reduces self.
-    func reduce(_ combine: (Doc<String>, Doc<String>) -> Doc<String>) -> Doc<String> {
+    public func reduce(_ combine: (Doc<String>, Doc<String>) -> Doc<String>) -> Doc<String> {
         guard let f = first else { return .empty }
         return dropFirst().reduce(f, combine)
     }
