@@ -20,28 +20,28 @@ class Tests: XCTestCase {
 //    }
     
     func testCat() {
-        assertPretty(pageWidth: 80, str: "some code", doc: .text("some") <> .space <> .text("code"))
+        assertPretty(pageWidth: 80, str: "some code", doc: "some" <> .space <> "code")
     }
     
     func testNest() {
         assertPretty(
             pageWidth: 80,
             str: "foo bar",
-            doc: .text("foo") <+> .nest(indent: 2, .text("bar"))
+            doc: "foo" <+> .text("bar").nest(indent: 2)
         )
 
         assertPretty(
             pageWidth: 80,
             str: "foo\n  bar",
-            doc: .text("foo") <> .nest(indent: 2, .line <> .text("bar"))
+            doc: .text("foo") <> (.line <> "bar").nest(indent: 2)
         )
     }
     
     func testUnion() {
         assertPretty(pageWidth: 80, str: "foo bar",
-                     doc: .text("foo") <%> .text("bar"))
+                     doc: "foo" <%> "bar")
         assertPretty(pageWidth: 5, str: "foo\nbar",
-                     doc: .text("foo") <%> .text("bar"))
+                     doc: "foo" <%> "bar")
     }
 
     func testLargeDocument() {

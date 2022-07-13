@@ -9,10 +9,9 @@ import Foundation
 
 extension Doc where A == String {
     public var parens: Self {
-        .choice(
-            .text("(") <> self <> .text(")"),
-            .text("(") <> (.line <> self).nest(indent: 4) <> .line <> .text(")")
-        )
+        "(\(self))"
+        <|>
+        "(" <> (.line <> self).nest(indent: 4) <> .line <> ")"
     }
 }
 
@@ -27,15 +26,12 @@ extension Array where Element == Doc<String> {
     public func argList(_ bracket: Bracket = .round, indent: String.Width = 4) -> Doc<String> {
         let open = String(bracket.rawValue.first!)
         let close = String(bracket.rawValue.dropFirst())
-        let lines = reduce { $0 <> .text(",") <> .line <> $1 }
-        return .choice(
-            .text(open) <> lines.flatten <> .text(close),
-            .text(open) <> (.line <> lines).nest(indent: 4) <> .line <> .text(close)
-        )
+        let lines = reduce { $0 <> "," <> .line <> $1 }
+        let body = lines.flatten <|> (.line <> lines).nest(indent: 4) <> .line
+        return "\(open)\(body)\(close)"
     }
+    
     public var commaList: Doc<String> {
-        reduce {
-            $0 <> .text(",") <> .line <> $1
-        }.grouped
+        reduce { "\($0),\(.line)\($1)" }.grouped
     }
 }

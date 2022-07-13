@@ -29,7 +29,7 @@ extension Array where Element == Doc<String> {
 
 extension Doc where A == String {
     func modifier(name: String) -> Self {
-        self <> (. line <> .text(".\(name)()")).nest(indent: 4)
+        self <> (.line <> ".\(name)()").nest(indent: 4)
     }
 }
 
@@ -41,12 +41,12 @@ class Tests2: XCTestCase {
         assertPretty(pageWidth: 20, str: """
         hello
             world
-        """, doc: .text("hello") <> .nest(indent: 4, .line <> .text("world")))
+        """, doc: "hello" <> (.line <> .text("world")).nest(indent: 4))
         
     }
     
     func testSimpleModifier() {
-        let base = Doc<String>.text("hello")
+        let base: Doc<String> = "hello"
         let doc = base
             .modifier(name: "hidden")
             .modifier(name: "test")
@@ -59,15 +59,15 @@ class Tests2: XCTestCase {
     }
     
     func testBraceModifier() {
-        let base = Doc<String>.text("HStack {") <> .line <> .text("}")
+        let base: Doc<String> = "HStack {" <> .line <> "}"
         let doc = base
             .modifier(name: "hidden")
             .modifier(name: "test")
         assertPretty(pageWidth: 80, str: """
         HStack {
         }
-        .hidden()
-        .test()
+            .hidden()
+            .test()
         """, doc: doc)
         
     }

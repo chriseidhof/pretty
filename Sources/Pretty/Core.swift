@@ -9,16 +9,14 @@ public protocol El {
     mutating func append(contentsOf: Self)
 }
 
-
-
 /// A document that can be laid out (later) with a specific width.
 indirect public enum Doc<A: El & Equatable>: Equatable {
     case empty
-    case seq(Doc, Doc)
-    case nest(indent: A.Width, Doc)
-    case _text(A, A.Width)
     case line
-    case choice(Doc, Doc)
+    case _seq(Doc, Doc)
+    case _nest(indent: A.Width, Doc)
+    case _text(A, A.Width)
+    case _choice(Doc, Doc)
     
     ///  Atomic text.
     ///
@@ -31,7 +29,7 @@ indirect public enum Doc<A: El & Equatable>: Equatable {
     }
     
     public func nest(indent: A.Width) -> Self {
-        .nest(indent: indent, self)
+        ._nest(indent: indent, self)
     }
 }
 
@@ -41,22 +39,22 @@ extension Doc {
         switch self {
         case .empty:
             return .empty
-        case let .seq(l, r):
-            return .seq(l.flatten, r.flatten)
-        case let .nest(indent, doc):
-            return .nest(indent: indent, doc.flatten)
+        case let ._seq(l, r):
+            return ._seq(l.flatten, r.flatten)
+        case let ._nest(indent, doc):
+            return ._nest(indent: indent, doc.flatten)
         case ._text:
             return self
         case .line:
             return .text(.space)
-        case .choice(let l, _):
+        case ._choice(let l, _):
             return l.flatten
         }
     }
     
     /// Choice between the flattened version of self (if it fits) or the regular version with newlines.
     public var grouped: Doc {
-        return .choice(flatten, self)
+        return ._choice(flatten, self)
     }
 }
 
@@ -89,15 +87,15 @@ func be<A, S>(width: A.Width, column: A.Width, _ pairs: S) -> SimpleDoc<A> where
     switch el {
     case .empty:
         return be(width: width, column: column, remainder)
-    case let .seq(l,r):
+    case let ._seq(l,r):
         return be(width: width, column: column, [(i,l), (i,r)] +  remainder)
-    case let .nest(indent: j, doc):
+    case let ._nest(indent: j, doc):
         return be(width: width, column: column, [(i+j, doc)] +  remainder)
     case let ._text(t, w):
         return .text(t, be(width: width, column: column + w, remainder))
     case .line:
         return .line(indent: i, { be(width: width, column: i, remainder) })
-    case let .choice(l, r):
+    case let ._choice(l, r):
         let l1 = be(width: width, column: column, [(i,l)] + remainder)
         if l1.fits(width: width, column: column) {
             return l1
@@ -136,7 +134,6 @@ extension SimpleDoc {
     }
 }
 
-infix operator <>: AdditionPrecedence
 
 extension Doc {
     /// A space
@@ -144,7 +141,7 @@ extension Doc {
     
     /// Horizontally concatenate two documents
     public static func <>(lhs: Doc, rhs: Doc) -> Doc {
-        return .seq(lhs, rhs)
+        return ._seq(lhs, rhs)
     }
     
     /// Render the final document with a horizontal constraint of `width`
@@ -155,9 +152,11 @@ extension Doc {
 
 // Combinators
 
+infix operator <>: AdditionPrecedence
 infix operator </>: AdditionPrecedence
 infix operator <+>: AdditionPrecedence
 infix operator <%>: AdditionPrecedence
+infix operator <|>: LogicalDisjunctionPrecedence
 
 // This should be Collection where Element == Doc<A>....
 extension Collection where Element == Doc<String> {
@@ -178,6 +177,11 @@ extension Doc {
     /// Horizontally concatenate `x` and `y` with a space in between
     public static func <+>(x: Doc, y: Doc) -> Doc {
         return x <> space <> y
+    }
+    
+    /// Choose between either `x` or `y`
+    public static func <|>(x: Doc, y: Doc) -> Doc {
+        return ._choice(x, y)
     }
     
     /// Concatenate `x` and `y` with a newline in between
