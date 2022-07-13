@@ -155,6 +155,7 @@ extension Doc {
 
 // Combinators
 
+infix operator </>: AdditionPrecedence
 infix operator <+>: AdditionPrecedence
 infix operator <%>: AdditionPrecedence
 
@@ -171,13 +172,17 @@ extension Collection where Element == Doc<String> {
         guard let f = first else { return .empty }
         return dropFirst().reduce(f, combine)
     }
-    
 }
 
 extension Doc {
     /// Horizontally concatenate `x` and `y` with a space in between
     public static func <+>(x: Doc, y: Doc) -> Doc {
         return x <> space <> y
+    }
+    
+    /// Concatenate `x` and `y` with a newline in between
+    public static func </>(x: Doc, y: Doc) -> Doc {
+        return x <> .line <> y
     }
     
     /// Try to horizontally concatenate and otherwise insert a newline
