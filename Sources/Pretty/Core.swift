@@ -171,6 +171,10 @@ extension Collection where Element == Doc<String> {
         guard let f = first else { return .empty }
         return dropFirst().reduce(f, combine)
     }
+    
+    public func joined(separator: Doc<String>) -> Doc<String> {
+        reduce { "\($0)\(separator)\($1)" }
+    }
 }
 
 extension Doc {
