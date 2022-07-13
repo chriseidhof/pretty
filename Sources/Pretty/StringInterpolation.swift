@@ -24,7 +24,7 @@ extension Doc: ExpressibleByStringLiteral, ExpressibleByStringInterpolation wher
     
     public struct StringInterpolation: StringInterpolationProtocol {
         // start with an empty string
-        var result: Doc<String> = .empty
+        public var result: Doc<String> = .empty
         
         public init(literalCapacity: Int, interpolationCount: Int) {
         }
