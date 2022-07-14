@@ -15,3 +15,8 @@ public enum Bracket: String, CaseIterable {
     case angle = "<>"
 }
 
+extension Array where Element == Doc<String> {
+    public var commaList: Doc<String> {
+        map { $0 }.joined(separator: ",\(.line)").grouped
+    }
+}

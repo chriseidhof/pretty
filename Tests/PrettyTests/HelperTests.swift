@@ -24,16 +24,4 @@ class HelperTests: XCTestCase {
         assertPretty(pageWidth: 5, str: "(\n    hello\n)", doc: str)
 //        assertPretty(pageWidth: 10, str: "hello,\nworld,\ntest", doc: str)
     }
-    
-    func testCombined() {
-        let str = words.argList()
-        assertPretty(pageWidth: 100, str: "(hello, world, test)", doc: str)
-        assertPretty(pageWidth: 10, str: """
-        (
-            hello,
-            world,
-            test
-        )
-        """, doc: str)
-    }
 }

@@ -16,17 +16,16 @@ extension Doc where A == String {
     }
 }
 
-extension Array where Element == Doc<String> {
+extension Array where Element == Pretty {
     public func argList(_ bracket: Bracket = .round) -> Doc<String> {
+        if bracket == .round && last is Closure {
+            
+        }
         let open = String(bracket.rawValue.first!)
         let close = String(bracket.rawValue.dropFirst())
-        let lines = joined(separator: "," <> .line)
+        let lines = map { $0.doc }.joined(separator: "," <> .line)
         let body = lines.flatten <|> (.line <> lines).indent(4) <> .line
         return "\(open)\(body)\(close)"
-    }
-    
-    public var commaList: Doc<String> {
-        joined(separator: ",\(.line)").grouped
     }
 }
 

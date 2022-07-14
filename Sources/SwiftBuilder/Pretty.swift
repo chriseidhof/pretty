@@ -41,6 +41,13 @@ extension CGFloat: Pretty {
     
 }
 
+extension String: Pretty {
+    public var doc: Doc<String> {
+        assert(!contains("\"") && !contains("\n"), "TODO")
+        return "\"\(self)\""
+    }
+}
+
 extension FloatingPoint where Self: CVarArg {
     public func precision(_ digits: Int) -> Doc<String> {
         .text(String(format: "%.\(digits)f", locale: .init(identifier: "en_us"), self))

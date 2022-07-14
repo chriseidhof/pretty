@@ -12,25 +12,7 @@ struct Color {
 
 extension Color {
     var doc: Doc<String> {
-        let pairs = [
-            Doc<String>.text("red: \(red)"),
-            .text("green: \(green)"),
-            .text("blue: \(blue)"),
-            .text("alpha: \(alpha)"),
-        ]
-        return .text("Color") <> pairs.argList()
-    }
-}
-
-extension Array where Element == Doc<String> {
-    var doc: Doc<String> {
-        argList(.square)
-    }
-}
-
-extension Doc where A == String {
-    func modifier(name: String) -> Self {
-        self <> (.line <> ".\(name)()").indent(4)
+        return Constructor.Color(red: red, green: green, blue: blue, alpha: alpha).doc
     }
 }
 
@@ -43,33 +25,6 @@ class Tests2: XCTestCase {
         hello
             world
         """, doc: "hello" <> (.line <> .text("world")).indent(4))
-        
-    }
-    
-    func testSimpleModifier() {
-        let base: Doc<String> = "hello"
-        let doc = base
-            .modifier(name: "hidden")
-            .modifier(name: "test")
-        assertPretty(pageWidth: 80, str: """
-        hello
-            .hidden()
-            .test()
-        """, doc: doc)
-        
-    }
-    
-    func testBraceModifier() {
-        let base: Doc<String> = "HStack {" <> .line <> "}"
-        let doc = base
-            .modifier(name: "hidden")
-            .modifier(name: "test")
-        assertPretty(pageWidth: 80, str: """
-        HStack {
-        }
-            .hidden()
-            .test()
-        """, doc: doc)
         
     }
     
@@ -193,6 +148,14 @@ class Tests2: XCTestCase {
         .padding(100)
         """, doc: c.doc)
     }
+    
+    func testTrailingClosure() {
+        let c = Constructor.Button("Hello", Closure())
+        assertPretty(pageWidth: 100, str: """
+        Button("Hello") { }
+        """, doc: c.doc)
+    }
+
 
 
 }

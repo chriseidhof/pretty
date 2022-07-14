@@ -26,7 +26,7 @@ public struct Extension: Pretty {
     public var doc: Doc<String> {
         var result: Doc<String> = "extension \(type)"
         if let w = `where` {
-            result = result <+> "where" <+> w.map { .text($0) }.commaList
+            result = result <+> "where" <+> w.map { Doc.text($0) }.commaList
         }
         result += .space + contents.map { $0.doc }.joined(separator: doubleNewline).braces
         return result
@@ -115,16 +115,51 @@ public struct Constructor: ValueExpression {
     public var doc: Doc<String> {
         "\(name)"
     }
+}
 
+extension ValueExpression {
+    public func trailingClosure(@PrettyBuilder contents: () -> [any Pretty]) -> TrailingClosure {
+        TrailingClosure(base: self, contents: contents())
+        
+    }
+    public func emptyTrailingClosure() -> TrailingClosure {
+        TrailingClosure(base: self, contents: [])
+    }
+}
+
+public struct Closure: Pretty {
+    public init() { }
+    
+    public var doc: Doc<String> {
+        return "{ }"
+    }
+}
+
+struct TrailingClosure: ValueExpression {
+    var base: ValueExpression
+    var contents: [any Pretty]
+    
+    var trailingBrace: Bool { true }
+    
+    var doc: Doc<String> {
+        let contentsDoc: Doc<String> = contents.isEmpty ? "{}" : contents.map { $0.doc }.joined(separator: .line).braces
+        return base.doc <+> contentsDoc
+    }
 }
 
 extension KeyValuePairs: Pretty where Key == String, Value == any Pretty {
     public var doc: Doc<String> { argList() }
     
     func argList() -> Doc<String> {
-        map { name, value in
-            name == "" ? value.doc : "\(name): \(value)"
-        }.argList()
+        if let l = last?.value, let trailing = l as? Closure {
+            return dropLast().map { name, value in
+                name == "" ? value.doc : "\(name): \(value)"
+            }.argList() <+> trailing.doc
+        } else {
+            return map { name, value in
+                name == "" ? value.doc : "\(name): \(value)"
+            }.argList()
+        }
     }
 }
 
