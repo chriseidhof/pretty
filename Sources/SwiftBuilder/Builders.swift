@@ -8,7 +8,7 @@
 import Foundation
 import Pretty
 
-protocol ValueExpression: Pretty {
+public protocol ValueExpression: Pretty {
     var trailingBrace: Bool { get }
 }
 
@@ -110,20 +110,10 @@ public struct Constructor: ValueExpression {
         CalledConstructor(constructor: self, arguments: args)
     }
     
-    let trailingBrace = false
+    public let trailingBrace = false
     
     public var doc: Doc<String> {
         "\(name)"
-    }
-}
-
-extension ValueExpression {
-    public func trailingClosure(@PrettyBuilder contents: () -> [any Pretty]) -> TrailingClosure {
-        TrailingClosure(base: self, contents: contents())
-        
-    }
-    public func emptyTrailingClosure() -> TrailingClosure {
-        TrailingClosure(base: self, contents: [])
     }
 }
 
@@ -132,18 +122,6 @@ public struct Closure: Pretty {
     
     public var doc: Doc<String> {
         return "{ }"
-    }
-}
-
-struct TrailingClosure: ValueExpression {
-    var base: ValueExpression
-    var contents: [any Pretty]
-    
-    var trailingBrace: Bool { true }
-    
-    var doc: Doc<String> {
-        let contentsDoc: Doc<String> = contents.isEmpty ? "{}" : contents.map { $0.doc }.joined(separator: .line).braces
-        return base.doc <+> contentsDoc
     }
 }
 
@@ -169,7 +147,7 @@ public struct CalledConstructor: ValueExpression {
     public var arguments: KeyValuePairs<String, any Pretty>
     public var builder: [any Pretty] = []
     
-    var trailingBrace: Bool { !builder.isEmpty }
+    public var trailingBrace: Bool { !builder.isEmpty }
     
     
     public var doc: Doc<String> {
@@ -207,7 +185,7 @@ public struct MemberExpression: ValueExpression {
         CallExpression(base: self, arguments: args)
     }
     
-    var trailingBrace: Bool {
+    public var trailingBrace: Bool {
         base.trailingBrace
     }
     
@@ -249,7 +227,7 @@ public struct MemberExpression: ValueExpression {
 public struct CallExpression: ValueExpression {
     var base: ValueExpression
     var arguments: KeyValuePairs<String, any Pretty>
-    var trailingBrace: Bool {
+    public var trailingBrace: Bool {
         base.trailingBrace
     }
     

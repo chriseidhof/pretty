@@ -155,6 +155,20 @@ class Tests2: XCTestCase {
         Button("Hello") { }
         """, doc: c.doc)
     }
+    
+    func _testString() {
+        let str = """
+        One
+        Two
+        """
+        let c = Constructor.Button(str, Closure())
+        assertPretty(pageWidth: 100, str: #"""
+        Button("""
+        One
+        Two
+        """) { }
+        """#, doc: c.doc)
+    }
 
 
 
