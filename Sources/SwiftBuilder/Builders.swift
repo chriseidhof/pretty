@@ -128,8 +128,8 @@ public struct Closure: Pretty {
 extension KeyValuePairs: Pretty where Key == String, Value == any Pretty {
     public var doc: Doc<String> { argList() }
     
-    func argList() -> Doc<String> {
-        if let l = last?.value, let trailing = l as? Closure {
+    func argList(allowTrailingClosure: Bool = true) -> Doc<String> {
+        if allowTrailingClosure, let l = last?.value, let trailing = l as? Closure {
             return dropLast().map { name, value in
                 name == "" ? value.doc : "\(name): \(value)"
             }.argList() <+> trailing.doc
@@ -154,7 +154,7 @@ public struct CalledConstructor: ValueExpression {
         var result: Doc<String> = "\(constructor.name)"
         let includeArguments = !arguments.isEmpty || builder.isEmpty
         if includeArguments {
-            result += arguments.doc
+            result += arguments.argList(allowTrailingClosure: builder.isEmpty)
         }
         if !builder.isEmpty {
             result += .space
@@ -199,29 +199,6 @@ public struct MemberExpression: ValueExpression {
         }
     }
 }
-
-//@dynamicMemberLookup
-//public struct Modifier: ValueExpression {
-//    var base: ValueExpression
-//    var name: String
-//    var arguments: KeyValuePairs<String, any Pretty>
-//    var trailingBrace: Bool {
-//        base.trailingBrace
-//    }
-//
-//    public var doc: Doc<String> {
-//        let line: Doc<String> = "\(.line).\(name)\(arguments)"
-//        if trailingBrace {
-//            return base.doc + line
-//        } else {
-//            return base.doc + line.indent(4)
-//        }
-//    }
-//
-//    public subscript(dynamicMember name: String) -> UnappliedModifier {
-//        UnappliedModifier(base: self, name: name)
-//    }
-//}
 
 @dynamicMemberLookup
 public struct CallExpression: ValueExpression {

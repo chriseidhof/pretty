@@ -156,6 +156,18 @@ class Tests2: XCTestCase {
         """, doc: c.doc)
     }
     
+    func testTrailingClosure2() {
+        let c = Constructor.Button(action: Closure()).builder(contents: {
+            Constructor.Circle()
+        })
+        assertPretty(pageWidth: 100, str: """
+        Button(action: { }) {
+            Circle()
+        }
+        """, doc: c.doc)
+
+    }
+    
     func _testString() {
         let str = """
         One
