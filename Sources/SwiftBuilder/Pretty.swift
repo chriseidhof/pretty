@@ -42,7 +42,7 @@ extension CGFloat: Pretty {
 }
 
 extension FloatingPoint where Self: CVarArg {
-    func precision(_ digits: Int) -> Doc<String> {
+    public func precision(_ digits: Int) -> Doc<String> {
         .text(String(format: "%.\(digits)f", locale: .init(identifier: "en_us"), self))
     }
 }
