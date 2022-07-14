@@ -112,4 +112,41 @@ class Tests2: XCTestCase {
         ]
         """, doc: input)
     }
+    
+    func testExtension() {
+        let e: Extension = Extension(type: "ButtonStyle", where: ["Self == Test"], contents: [
+            Variable(modifiers: .public, name: "foo", type: "Bool", defaultValue: "true" as Doc<String>)
+        ])
+        assertPretty(pageWidth: 100, str: """
+        extension ButtonStyle where Self == Test {
+            public var foo: Bool = true
+        }
+        """, doc: e.doc)
+        
+    }
+    
+    func testConstructor() {
+        let c = Constructor.Rectangle(cornerRadius: 100, width: 200)
+        assertPretty(pageWidth: 100, str: """
+        Rectangle(cornerRadius: 100, width: 200)
+        """, doc: c.doc)
+        assertPretty(pageWidth: 30, str: """
+        Rectangle(
+            cornerRadius: 100,
+            width: 200
+        )
+        """, doc: c.doc)
+    }
+    
+    func testModifier() {
+        let c = Constructor.Circle()
+            .frame(width: 100)
+            .padding()
+        assertPretty(pageWidth: 100, str: """
+        Circle()
+            .frame(width: 100)
+            .padding()
+        """, doc: c.doc)
+    }
+
 }

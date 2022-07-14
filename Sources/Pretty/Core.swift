@@ -140,8 +140,22 @@ extension Doc {
     public static var space: Doc { return .text(.space) }
     
     /// Horizontally concatenate two documents
+    @available(iOS, deprecated: 100000.0, message: "use `+` instead.")
+    @available(macOS, deprecated: 100000.0, message: "use `+` instead.")
+    @available(tvOS, deprecated: 100000.0, message: "use `+` instead.")
+    @available(watchOS, deprecated: 100000.0, message: "use `+` instead.")
     public static func <>(lhs: Doc, rhs: Doc) -> Doc {
         return ._seq(lhs, rhs)
+    }
+    
+    /// Horizontally concatenate two documents
+    public static func +(lhs: Doc, rhs: Doc) -> Doc {
+        return ._seq(lhs, rhs)
+    }
+    
+    /// Horizontally concatenate two documents
+    public static func +=(lhs: inout Doc, rhs: Doc) {
+        return lhs = lhs + rhs
     }
     
     /// Render the final document with a horizontal constraint of `width`
