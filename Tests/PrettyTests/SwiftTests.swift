@@ -139,6 +139,18 @@ class Tests2: XCTestCase {
         """, doc: c.doc)
     }
     
+    func testStaticMethod() {
+        let c = Constructor.NSFont.systemFont(ofSize: 12)
+        assertPretty(pageWidth: 100, str: """
+        NSFont.systemFont(ofSize: 12)
+        """, doc: c.doc)
+        assertPretty(pageWidth: 20, str: """
+        NSFont.systemFont(
+            ofSize: 12
+        )
+        """, doc: c.doc)
+    }
+    
     func testModifier() {
         let c = Constructor.Circle()
             .frame(width: 100)

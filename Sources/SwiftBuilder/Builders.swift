@@ -92,7 +92,7 @@ public struct Variable: Pretty {
 
 @dynamicCallable
 @dynamicMemberLookup
-public struct Constructor {
+public struct Constructor: ValueExpression {
     public init(_ name: String) {
         self.name = name
     }
@@ -102,8 +102,18 @@ public struct Constructor {
         Self(name)
     }
     
+    public subscript(dynamicMember name: String) -> MemberExpression {
+        MemberExpression(base: self, name: name, skipNewline: true)
+    }
+    
     public func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, any Pretty>) -> CalledConstructor {
         CalledConstructor(constructor: self, arguments: args)
+    }
+    
+    let trailingBrace = false
+    
+    public var doc: Doc<String> {
+        "\(name)"
     }
 
 }
@@ -147,40 +157,72 @@ public struct CalledConstructor: ValueExpression {
         return copy
     }
     
-    public subscript(dynamicMember name: String) -> UnappliedModifier {
-        UnappliedModifier(base: self, name: name)
+    public subscript(dynamicMember name: String) -> MemberExpression {
+        MemberExpression(base: self, name: name)
     }
 }
 
 @dynamicCallable
-public struct UnappliedModifier {
+public struct MemberExpression: ValueExpression {
     var base: ValueExpression
     var name: String
+    var skipNewline: Bool = false
     
-    public func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, any Pretty>) -> Modifier {
-        Modifier(base: base, name: name, arguments: args)
+    public func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, any Pretty>) -> CallExpression {
+        CallExpression(base: self, arguments: args)
+    }
+    
+    var trailingBrace: Bool {
+        base.trailingBrace
+    }
+    
+    public var doc: Doc<String> {
+        if skipNewline {
+            return base.doc + (".\(name)" as Doc<String>) <|> base.doc + ("\(.line).\(name)" as Doc<String>).indent(4)
+        } else if base.trailingBrace {
+            return base.doc + ("\(.line).\(name)" as Doc<String>)
+        } else {
+            return base.doc + ("\(.line).\(name)" as Doc<String>).indent(4)
+        }
     }
 }
 
+//@dynamicMemberLookup
+//public struct Modifier: ValueExpression {
+//    var base: ValueExpression
+//    var name: String
+//    var arguments: KeyValuePairs<String, any Pretty>
+//    var trailingBrace: Bool {
+//        base.trailingBrace
+//    }
+//
+//    public var doc: Doc<String> {
+//        let line: Doc<String> = "\(.line).\(name)\(arguments)"
+//        if trailingBrace {
+//            return base.doc + line
+//        } else {
+//            return base.doc + line.indent(4)
+//        }
+//    }
+//
+//    public subscript(dynamicMember name: String) -> UnappliedModifier {
+//        UnappliedModifier(base: self, name: name)
+//    }
+//}
+
 @dynamicMemberLookup
-public struct Modifier: ValueExpression {
+public struct CallExpression: ValueExpression {
     var base: ValueExpression
-    var name: String
     var arguments: KeyValuePairs<String, any Pretty>
     var trailingBrace: Bool {
         base.trailingBrace
     }
     
     public var doc: Doc<String> {
-        let line: Doc<String> = "\(.line).\(name)\(arguments)"
-        if trailingBrace {
-            return base.doc + line
-        } else {
-            return base.doc + line.indent(4)
-        }
+        "\(base.doc)\(arguments)"
     }
     
-    public subscript(dynamicMember name: String) -> UnappliedModifier {
-        UnappliedModifier(base: self, name: name)
+    public subscript(dynamicMember name: String) -> MemberExpression {
+        MemberExpression(base: self, name: name)
     }
 }
