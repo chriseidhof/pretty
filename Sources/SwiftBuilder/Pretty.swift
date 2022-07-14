@@ -27,3 +27,28 @@ extension Int: Pretty {
         .text("\(self)")
     }
 }
+
+extension Array: Pretty where Element: Pretty {
+    public var doc: Doc<String> {
+        map { $0.doc }.argList(.square)
+    }
+}
+
+extension CGFloat: Pretty {
+    public var doc: Doc<String> {
+        .text("\(self)")
+    }
+    
+}
+
+extension FloatingPoint where Self: CVarArg {
+    func precision(_ digits: Int) -> Doc<String> {
+        .text(String(format: "%.\(digits)f", locale: .init(identifier: "en_us"), self))
+    }
+}
+
+extension Double: Pretty {
+    public var doc: Doc<String> {
+        .text("\(self)")
+    }
+}
