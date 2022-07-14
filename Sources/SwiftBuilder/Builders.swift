@@ -105,9 +105,8 @@ public struct Constructor {
 }
 
 extension KeyValuePairs: Pretty where Key == String, Value == any Pretty {
-    public var doc: Doc<String> {
-        argList()
-    }
+    public var doc: Doc<String> { argList() }
+    
     func argList() -> Doc<String> {
         map { name, value in
             name == "" ? value.doc : "\(name): \(value)"
@@ -124,7 +123,10 @@ public struct CalledConstructor: Pretty {
     
     public var doc: Doc<String> {
         var result: Doc<String> = "\(constructor.name)"
-        result += arguments.doc
+        let includeArguments = !arguments.isEmpty || builder.isEmpty
+        if includeArguments {
+            result += arguments.doc
+        }
         if !builder.isEmpty {
             result += .space
             result += builder.map { $0.doc }.joined(separator: .line).braces
@@ -166,27 +168,5 @@ public struct Modifier: Pretty {
     
     public subscript(dynamicMember name: String) -> UnappliedModifier {
         UnappliedModifier(base: self, name: name)
-    }
-}
-
-@resultBuilder
-public struct PrettyBuilder {
-    public static func buildBlock(_ p: any Pretty) -> [Pretty] {
-        [p]
-    }
-    public static func buildBlock(_ components: any Pretty...) -> [Pretty] {
-        components
-    }
-    
-    public static func buildOptional(_ component: [Pretty]?) -> [Pretty] {
-        component ?? []
-    }
-    
-    public static func buildEither(first component: [Pretty]) -> [Pretty] {
-       component
-    }
-    
-    public static func buildEither(second component: [Pretty]) -> [Pretty] {
-        component
     }
 }

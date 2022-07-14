@@ -38,3 +38,25 @@ extension Doc where A == String {
         "{" <> (.line <> self).indent(4) <> .line <> "}"
     }
 }
+
+@resultBuilder
+public struct PrettyBuilder {
+    public static func buildBlock(_ p: any Pretty) -> [Pretty] {
+        [p]
+    }
+    public static func buildBlock(_ components: any Pretty...) -> [Pretty] {
+        components
+    }
+    
+    public static func buildOptional(_ component: [Pretty]?) -> [Pretty] {
+        component ?? []
+    }
+    
+    public static func buildEither(first component: [Pretty]) -> [Pretty] {
+       component
+    }
+    
+    public static func buildEither(second component: [Pretty]) -> [Pretty] {
+        component
+    }
+}

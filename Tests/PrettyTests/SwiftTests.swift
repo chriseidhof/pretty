@@ -158,7 +158,7 @@ class Tests2: XCTestCase {
                 Constructor.Rectangle()
             }
         assertPretty(pageWidth: 100, str: """
-        HStack() {
+        HStack {
             Circle()
                 .padding(100)
             Rectangle()
