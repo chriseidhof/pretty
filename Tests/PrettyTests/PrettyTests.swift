@@ -27,13 +27,13 @@ class Tests: XCTestCase {
         assertPretty(
             pageWidth: 80,
             str: "foo bar",
-            doc: "foo" <+> .text("bar").nest(indent: 2)
+            doc: "foo" <+> .text("bar").indent(2)
         )
 
         assertPretty(
             pageWidth: 80,
             str: "foo\n  bar",
-            doc: .text("foo") <> (.line <> "bar").nest(indent: 2)
+            doc: .text("foo") <> (.line <> "bar").indent(2)
         )
     }
     

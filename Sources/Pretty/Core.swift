@@ -28,8 +28,8 @@ indirect public enum Doc<A: El & Equatable>: Equatable {
         return ._text(value, value.width)
     }
     
-    public func nest(indent: A.Width) -> Self {
-        ._nest(indent: indent, self)
+    public func indent(_ width: A.Width) -> Self {
+        ._nest(indent: width, self)
     }
 }
 
@@ -194,7 +194,7 @@ extension Collection where Element == Doc<String> {
 extension Doc {
     /// Horizontally concatenate `x` and `y` with a space in between
     public static func <+>(x: Doc, y: Doc) -> Doc {
-        return x <> space <> y
+        return x + space + y
     }
     
     /// Choose between either `x` or `y`
@@ -204,7 +204,7 @@ extension Doc {
     
     /// Concatenate `x` and `y` with a newline in between
     public static func </>(x: Doc, y: Doc) -> Doc {
-        return x <> .line <> y
+        return x + .line + y
     }
     
     /// Try to horizontally concatenate and otherwise insert a newline
@@ -214,7 +214,7 @@ extension Doc {
     
     /// Put `x` and `y` horizontally next to each other, otherwise insert a newline.
     public static func <%>(x: Doc, y: Doc) -> Doc {
-        return x <> softline <> y
+        return x + softline + y
     }
 }
 

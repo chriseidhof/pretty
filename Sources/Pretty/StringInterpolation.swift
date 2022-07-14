@@ -20,25 +20,21 @@ extension Doc: ExpressibleByExtendedGraphemeClusterLiteral where A == String {
 }
 
 extension Doc: ExpressibleByStringLiteral, ExpressibleByStringInterpolation where A == String {
-    
-    
     public struct StringInterpolation: StringInterpolationProtocol {
-        // start with an empty string
         public var result: Doc<String> = .empty
         
-        public init(literalCapacity: Int, interpolationCount: Int) {
-        }
+        public init(literalCapacity: Int, interpolationCount: Int) { }
         
         mutating public func appendLiteral(_ literal: String) {
-            result = result <> .text(literal)
+            result += .text(literal)
         }
         
         mutating public func appendInterpolation(_ doc: Doc<String>) {
-            result = result <> doc
+            result += doc
         }
         
         mutating public func appendInterpolation(_ doc: String) {
-            result = result <> .text(doc)
+            result += .text(doc)
         }
     }
     

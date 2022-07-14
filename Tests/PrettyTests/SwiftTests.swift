@@ -1,5 +1,6 @@
 import XCTest
 import Pretty
+import SwiftBuilder
 import Foundation
 
 struct Color {
@@ -29,7 +30,7 @@ extension Array where Element == Doc<String> {
 
 extension Doc where A == String {
     func modifier(name: String) -> Self {
-        self <> (.line <> ".\(name)()").nest(indent: 4)
+        self <> (.line <> ".\(name)()").indent(4)
     }
 }
 
@@ -41,7 +42,7 @@ class Tests2: XCTestCase {
         assertPretty(pageWidth: 20, str: """
         hello
             world
-        """, doc: "hello" <> (.line <> .text("world")).nest(indent: 4))
+        """, doc: "hello" <> (.line <> .text("world")).indent(4))
         
     }
     
@@ -146,6 +147,22 @@ class Tests2: XCTestCase {
         Circle()
             .frame(width: 100)
             .padding()
+        """, doc: c.doc)
+    }
+    
+    func testPrettyBuilder() {
+        let c = Constructor.HStack()
+            .builder {
+                Constructor.Circle()
+                    .padding(100)
+                Constructor.Rectangle()
+            }
+        assertPretty(pageWidth: 100, str: """
+        HStack() {
+            Circle()
+                .padding(100)
+            Rectangle()
+        }
         """, doc: c.doc)
     }
 

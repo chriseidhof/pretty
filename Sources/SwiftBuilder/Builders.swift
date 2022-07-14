@@ -6,30 +6,7 @@
 //
 
 import Foundation
-
-public protocol Pretty {
-    var doc: Doc<String> { get }
-}
-
-extension Doc.StringInterpolation {
-    mutating func appendInterpolation(_ p: any Pretty) {
-        result = result <> p.doc
-    }
-}
-
-extension Doc: Pretty where A == String {
-    public var doc: Doc<String> { self }
-}
-
-let doubleNewline: Doc<String> = .line + .line
-
-
-extension Doc where A == String {
-    /// Indent this block and put braces around it (with the contents on a separate line)
-    public var braces: Self {
-        "{" <> (.line <> self).nest(indent: 4) <> .line <> "}"
-    }
-}
+import Pretty
 
 public struct Extension: Pretty {
     public init(type: String, where: [String]? = nil, contents: [Pretty]) {
@@ -109,10 +86,6 @@ public struct Variable: Pretty {
     }
 }
 
-extension Int: Pretty {
-    public var doc: Doc<String> { .text("\(self)") }
-}
-
 @dynamicCallable
 @dynamicMemberLookup
 public struct Constructor {
@@ -131,15 +104,39 @@ public struct Constructor {
 
 }
 
+extension KeyValuePairs: Pretty where Key == String, Value == any Pretty {
+    public var doc: Doc<String> {
+        argList()
+    }
+    func argList() -> Doc<String> {
+        map { name, value in
+            name == "" ? value.doc : "\(name): \(value)"
+        }.argList()
+    }
+}
+
 @dynamicMemberLookup
 public struct CalledConstructor: Pretty {
     public var constructor: Constructor
     public var arguments: KeyValuePairs<String, any Pretty>
+    public var builder: [any Pretty] = []
+    
     
     public var doc: Doc<String> {
-        return .text(constructor.name) <> arguments.map { name, value in
-            "\(name): \(value)"
-        }.argList()
+        var result: Doc<String> = "\(constructor.name)"
+        result += arguments.doc
+        if !builder.isEmpty {
+            result += .space
+            result += builder.map { $0.doc }.joined(separator: .line).braces
+        }
+        return result
+    }
+    
+    public func builder(@PrettyBuilder contents: () -> [any Pretty]) -> Self {
+        assert(self.builder.isEmpty)
+        var copy = self
+        copy.builder = contents()
+        return copy
     }
     
     public subscript(dynamicMember name: String) -> UnappliedModifier {
@@ -164,12 +161,32 @@ public struct Modifier: Pretty {
     var arguments: KeyValuePairs<String, any Pretty>
     
     public var doc: Doc<String> {
-        return base.doc + ("\(.line).\(name)" <> arguments.map { name, value in
-            "\(name): \(value)"
-        }.argList()).nest(indent: 4)
+        return base.doc + ("\(.line).\(name)\(arguments)" as Doc<String>).indent(4)
     }
     
     public subscript(dynamicMember name: String) -> UnappliedModifier {
         UnappliedModifier(base: self, name: name)
+    }
+}
+
+@resultBuilder
+public struct PrettyBuilder {
+    public static func buildBlock(_ p: any Pretty) -> [Pretty] {
+        [p]
+    }
+    public static func buildBlock(_ components: any Pretty...) -> [Pretty] {
+        components
+    }
+    
+    public static func buildOptional(_ component: [Pretty]?) -> [Pretty] {
+        component ?? []
+    }
+    
+    public static func buildEither(first component: [Pretty]) -> [Pretty] {
+       component
+    }
+    
+    public static func buildEither(second component: [Pretty]) -> [Pretty] {
+        component
     }
 }
