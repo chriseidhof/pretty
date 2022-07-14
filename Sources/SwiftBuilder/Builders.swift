@@ -8,6 +8,10 @@
 import Foundation
 import Pretty
 
+protocol ValueExpression: Pretty {
+    var trailingBrace: Bool { get }
+}
+
 public struct Extension: Pretty {
     public init(type: String, where: [String]? = nil, contents: [Pretty]) {
         self.type = type
@@ -115,10 +119,12 @@ extension KeyValuePairs: Pretty where Key == String, Value == any Pretty {
 }
 
 @dynamicMemberLookup
-public struct CalledConstructor: Pretty {
+public struct CalledConstructor: ValueExpression {
     public var constructor: Constructor
     public var arguments: KeyValuePairs<String, any Pretty>
     public var builder: [any Pretty] = []
+    
+    var trailingBrace: Bool { !builder.isEmpty }
     
     
     public var doc: Doc<String> {
@@ -148,7 +154,7 @@ public struct CalledConstructor: Pretty {
 
 @dynamicCallable
 public struct UnappliedModifier {
-    var base: Pretty
+    var base: ValueExpression
     var name: String
     
     public func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, any Pretty>) -> Modifier {
@@ -157,13 +163,21 @@ public struct UnappliedModifier {
 }
 
 @dynamicMemberLookup
-public struct Modifier: Pretty {
-    var base: Pretty
+public struct Modifier: ValueExpression {
+    var base: ValueExpression
     var name: String
     var arguments: KeyValuePairs<String, any Pretty>
+    var trailingBrace: Bool {
+        base.trailingBrace
+    }
     
     public var doc: Doc<String> {
-        return base.doc + ("\(.line).\(name)\(arguments)" as Doc<String>).indent(4)
+        let line: Doc<String> = "\(.line).\(name)\(arguments)"
+        if trailingBrace {
+            return base.doc + line
+        } else {
+            return base.doc + line.indent(4)
+        }
     }
     
     public subscript(dynamicMember name: String) -> UnappliedModifier {

@@ -165,5 +165,22 @@ class Tests2: XCTestCase {
         }
         """, doc: c.doc)
     }
+    
+    func testPrettyBuilderWithModifier() {
+        let c = Constructor.HStack()
+            .builder {
+                Constructor.Circle()
+                Constructor.Rectangle()
+            }
+            .padding(100)
+        assertPretty(pageWidth: 100, str: """
+        HStack {
+            Circle()
+            Rectangle()
+        }
+        .padding(100)
+        """, doc: c.doc)
+    }
+
 
 }
