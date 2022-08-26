@@ -118,10 +118,22 @@ public struct Constructor: ValueExpression {
 }
 
 public struct Closure: Pretty {
-    public init() { }
+    public var params: [String] = []
+    public var body: Pretty?
+    public init(params: [String] = [], body: Pretty? = nil) {
+        self.params = params
+        self.body = body
+    }
     
     public var doc: Doc<String> {
-        return "{ }"
+        if params.isEmpty {
+            guard let b = body else { return "{ }" }
+            return "{" <> (.line <> b.doc).indent(4) <> .line <> "}"
+        } else {
+            let p = params.map { Doc<String>(stringLiteral: $0) }.commaList <+> "in"
+            let body = body?.doc ?? "()"
+            return "{ \(p)" <> (.line <> body).indent(4) <> .line <> "}"
+        }
     }
 }
 
@@ -177,6 +189,12 @@ public struct CalledConstructor: ValueExpression {
 
 @dynamicCallable
 public struct MemberExpression: ValueExpression {
+    public init(base: ValueExpression, name: String, skipNewline: Bool = false) {
+        self.base = base
+        self.name = name
+        self.skipNewline = skipNewline
+    }
+    
     var base: ValueExpression
     var name: String
     var skipNewline: Bool = false
